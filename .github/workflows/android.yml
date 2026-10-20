@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - android-release/app-release.apk
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-${{ github.workflow }}-${{ github.ref }}
@@ -43,6 +45,32 @@ jobs:
 
       - name: Build release APK
         run: flutter build apk --release
+
+      - name: Publish APK to main
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          remote_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$remote_sha" != "$SOURCE_SHA" ]; then
+            echo "main advanced during this build; skipping stale APK publication."
+            exit 0
+          fi
+
+          mkdir -p android-release
+          cp build/app/outputs/flutter-apk/app-release.apk android-release/app-release.apk
+          git add -f android-release/app-release.apk
+
+          if git diff --cached --quiet; then
+            echo "The APK is unchanged; no repository commit is needed."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Publish Android release APK" \
+            -m "Built from source commit ${SOURCE_SHA}." \
+            -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+          git push origin HEAD:main
 
       - name: Upload release APK
         uses: actions/upload-artifact@v4
