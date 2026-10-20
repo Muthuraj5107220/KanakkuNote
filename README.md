@@ -28,5 +28,5 @@ flutter test
 ## Android CI
 
 GitHub Actions runs `flutter analyze`, `flutter test`, and a release APK build
-on pushes to `main` and pull requests targeting `main`. The generated APK is
-available as a workflow artifact.
+when `main` is updated, including after a pull request is merged. The generated
+APK is available as a workflow artifact.
