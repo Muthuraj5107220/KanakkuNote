@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../models/expense.dart';
 import '../services/expense_storage.dart';
+import '../widgets/navigation/floating_bottom_bar.dart';
 import '../widgets/expense/expense_dashboard.dart';
 import '../widgets/expense/expense_form_sheet.dart';
 import '../widgets/expense/expense_load_error_state.dart';
 import '../widgets/expense/expense_widget_styles.dart';
+import 'settings_screen.dart';
 
 class ExpenseHomeScreen extends StatefulWidget {
   const ExpenseHomeScreen({super.key});
@@ -18,6 +20,7 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
   final _storage = ExpenseStorage();
   List<Expense> _expenses = [];
   DateTime _selectedDate = DateUtils.dateOnly(DateTime.now());
+  int _selectedDestination = 0;
   bool _loading = true;
   Object? _loadError;
 
@@ -97,10 +100,18 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
     } else {
       updated[index] = result;
     }
+
     await _persist(updated);
     if (mounted) {
       setState(() => _selectedDate = DateUtils.dateOnly(result.date));
     }
+  }
+
+  Future<void> _addExpense() async {
+    if (_selectedDestination != 0) {
+      setState(() => _selectedDestination = 0);
+    }
+    await _openExpenseForm();
   }
 
   Future<void> _deleteExpense(Expense expense) async {
@@ -168,20 +179,20 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _loading || _loadError != null
-            ? null
-            : () => _openExpenseForm(),
-        backgroundColor: expenseInk,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add expense'),
+      extendBody: true,
+      bottomNavigationBar: FloatingBottomBar(
+        selectedIndex: _selectedDestination,
+        onDestinationSelected: (index) =>
+            setState(() => _selectedDestination = index),
+        onAddExpense: _loading || _loadError != null ? null : _addExpense,
       ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 680),
-            child: _loading
+            child: _selectedDestination == 1
+                ? const SettingsScreen()
+                : _loading
                 ? const Center(
                     child: CircularProgressIndicator(color: expenseInk),
                   )

@@ -14,10 +14,30 @@ void main() {
 
     expect(find.text('Your money, in focus'), findsOneWidget);
     expect(find.text('This week'), findsOneWidget);
+    expect(find.text('Dashboard'), findsOneWidget);
+    expect(find.text('Settings'), findsOneWidget);
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
     await tester.pumpAndSettle();
     expect(find.text('A fresh start'), findsOneWidget);
     expect(find.text('Add expense'), findsOneWidget);
+  });
+
+  testWidgets('bottom bar opens settings and returns to dashboard', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const KanakkuNoteApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Privacy'), findsOneWidget);
+    expect(find.text('Expense storage'), findsOneWidget);
+
+    await tester.tap(find.text('Dashboard'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Your money, in focus'), findsOneWidget);
   });
 
   testWidgets('adds an expense to the selected day', (tester) async {
