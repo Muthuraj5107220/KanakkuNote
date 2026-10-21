@@ -23,6 +23,7 @@ class ExpenseDashboard extends StatelessWidget {
     required this.onSelectDate,
     required this.onEditExpense,
     required this.onDeleteExpense,
+    required this.accounts,
   });
 
   final DateTime selectedDate;
@@ -36,6 +37,7 @@ class ExpenseDashboard extends StatelessWidget {
   final ValueChanged<DateTime> onSelectDate;
   final ValueChanged<Expense> onEditExpense;
   final ValueChanged<Expense> onDeleteExpense;
+  final List<ExpenseAccount> accounts;
 
   bool get _isToday {
     final today = DateUtils.dateOnly(DateTime.now());
@@ -46,6 +48,7 @@ class ExpenseDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.expensePalette;
     return CustomScrollView(
       slivers: [
         SliverPadding(
@@ -59,16 +62,16 @@ class ExpenseDashboard extends StatelessWidget {
           sliver: SliverToBoxAdapter(
             child: Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Your money, in focus',
-                    style: TextStyle(color: expenseMuted, fontSize: 14),
+                    style: TextStyle(color: palette.muted, fontSize: 14),
                   ),
                 ),
                 Text(
                   DateFormat('MMMM yyyy').format(selectedDate),
-                  style: const TextStyle(
-                    color: expenseInk,
+                  style: TextStyle(
+                    color: palette.ink,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -103,19 +106,19 @@ class ExpenseDashboard extends StatelessWidget {
           sliver: SliverToBoxAdapter(
             child: Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Your expenses',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: expenseInk,
+                      color: palette.ink,
                     ),
                   ),
                 ),
                 Text(
                   '${dayExpenses.length} ${dayExpenses.length == 1 ? 'entry' : 'entries'}',
-                  style: const TextStyle(color: expenseMuted, fontSize: 13),
+                  style: TextStyle(color: palette.muted, fontSize: 13),
                 ),
               ],
             ),
@@ -136,8 +139,13 @@ class ExpenseDashboard extends StatelessWidget {
               separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final expense = dayExpenses[index];
+                final accountName = accounts
+                    .where((account) => account.id == expense.accountId)
+                    .map((account) => account.name)
+                    .firstOrNull;
                 return ExpenseListTile(
                   expense: expense,
+                  accountName: accountName,
                   onEdit: () => onEditExpense(expense),
                   onDelete: () => onDeleteExpense(expense),
                 );

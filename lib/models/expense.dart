@@ -26,8 +26,21 @@ class ExpenseCategory {
 
   static ExpenseCategory fromName(String name) => all.firstWhere(
     (category) => category.name == name,
-    orElse: () => all.last,
+    orElse: () =>
+        ExpenseCategory(name, Icons.category_rounded, const Color(0xFF71877E)),
   );
+}
+
+class ExpenseAccount {
+  const ExpenseAccount({
+    required this.id,
+    required this.name,
+    this.openingBalancePaise = 0,
+  });
+
+  final String id;
+  final String name;
+  final int openingBalancePaise;
 }
 
 class Expense {
@@ -37,6 +50,7 @@ class Expense {
     required this.amountPaise,
     required this.category,
     required this.date,
+    this.accountId,
     this.note = '',
   });
 
@@ -45,14 +59,16 @@ class Expense {
   final int amountPaise;
   final String category;
   final DateTime date;
+  final String? accountId;
   final String note;
 
-  Map<String, Object> toJson() => {
+  Map<String, Object?> toJson() => {
     'id': id,
     'title': title,
     'amountPaise': amountPaise,
     'category': category,
     'date': date.toIso8601String(),
+    'accountId': accountId,
     'note': note,
   };
 
@@ -62,12 +78,14 @@ class Expense {
     final amountPaise = json['amountPaise'];
     final category = json['category'];
     final date = json['date'];
+    final accountId = json['accountId'];
     final note = json['note'];
     if (id is! String ||
         title is! String ||
         amountPaise is! int ||
         category is! String ||
         date is! String ||
+        (accountId != null && accountId is! String) ||
         note is! String) {
       throw const FormatException('An expense entry has invalid fields.');
     }
@@ -77,6 +95,7 @@ class Expense {
       amountPaise: amountPaise,
       category: category,
       date: DateTime.parse(date),
+      accountId: accountId is String ? accountId : null,
       note: note,
     );
   }

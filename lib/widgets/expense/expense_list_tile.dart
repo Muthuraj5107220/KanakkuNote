@@ -8,19 +8,22 @@ class ExpenseListTile extends StatelessWidget {
   const ExpenseListTile({
     super.key,
     required this.expense,
+    required this.accountName,
     required this.onEdit,
     required this.onDelete,
   });
 
   final Expense expense;
+  final String? accountName;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.expensePalette;
     final category = ExpenseCategory.fromName(expense.category);
     return Material(
-      color: Colors.white,
+      color: palette.surface,
       borderRadius: BorderRadius.circular(19),
       child: InkWell(
         onTap: onEdit,
@@ -29,7 +32,7 @@ class ExpenseListTile extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(13, 12, 8, 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(19),
-            border: Border.all(color: expenseLine),
+            border: Border.all(color: palette.line),
           ),
           child: Row(
             children: [
@@ -51,24 +54,28 @@ class ExpenseListTile extends StatelessWidget {
                       expense.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: expenseInk,
+                      style: TextStyle(
+                        color: palette.ink,
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${expense.category}  ·  ${DateFormat('h:mm a').format(expense.date)}',
-                      style: const TextStyle(color: expenseMuted, fontSize: 11),
+                      [
+                        expense.category,
+                        ?accountName,
+                        DateFormat('h:mm a').format(expense.date),
+                      ].join('  ·  '),
+                      style: TextStyle(color: palette.muted, fontSize: 11),
                     ),
                   ],
                 ),
               ),
               Text(
                 formatExpenseAmount(expense.amountPaise),
-                style: const TextStyle(
-                  color: expenseInk,
+                style: TextStyle(
+                  color: palette.ink,
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
                 ),
@@ -80,9 +87,9 @@ class ExpenseListTile extends StatelessWidget {
                   PopupMenuItem(value: 'edit', child: Text('Edit')),
                   PopupMenuItem(value: 'delete', child: Text('Delete')),
                 ],
-                icon: const Icon(
+                icon: Icon(
                   Icons.more_vert_rounded,
-                  color: expenseMuted,
+                  color: palette.muted,
                   size: 20,
                 ),
               ),

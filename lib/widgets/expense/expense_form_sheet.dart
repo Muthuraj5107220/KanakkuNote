@@ -5,10 +5,18 @@ import '../../models/expense.dart';
 import 'expense_widget_styles.dart';
 
 class ExpenseFormSheet extends StatefulWidget {
-  const ExpenseFormSheet({super.key, this.initial, required this.defaultDate});
+  const ExpenseFormSheet({
+    super.key,
+    this.initial,
+    required this.defaultDate,
+    required this.accounts,
+    required this.categories,
+  });
 
   final Expense? initial;
   final DateTime defaultDate;
+  final List<ExpenseAccount> accounts;
+  final List<ExpenseCategory> categories;
 
   @override
   State<ExpenseFormSheet> createState() => _ExpenseFormSheetState();
@@ -20,6 +28,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
   late final TextEditingController _amountController;
   late final TextEditingController _noteController;
   late String _category;
+  late String _accountId;
   late DateTime _date;
 
   @override
@@ -34,6 +43,9 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
     );
     _noteController = TextEditingController(text: expense?.note ?? '');
     _category = expense?.category ?? ExpenseCategory.all.first.name;
+    _accountId =
+        expense?.accountId ??
+        (widget.accounts.isEmpty ? '' : widget.accounts.first.id);
     _date =
         expense?.date ??
         DateTime(
@@ -75,6 +87,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
       amountPaise: _parsePaise(_amountController.text)!,
       category: _category,
       date: _date,
+      accountId: _accountId,
       note: _noteController.text.trim(),
     );
     Navigator.pop(context, expense);
@@ -102,6 +115,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.expensePalette;
     final editing = widget.initial != null;
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -122,7 +136,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                   width: 38,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: expenseLine,
+                    color: palette.line,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -130,16 +144,16 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
               const SizedBox(height: 20),
               Text(
                 editing ? 'Edit expense' : 'Add an expense',
-                style: const TextStyle(
-                  color: expenseInk,
+                style: TextStyle(
+                  color: palette.ink,
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(height: 5),
-              const Text(
+              Text(
                 'Keep the little things in sight.',
-                style: TextStyle(color: expenseMuted, fontSize: 13),
+                style: TextStyle(color: palette.muted, fontSize: 13),
               ),
               const SizedBox(height: 22),
               TextFormField(
@@ -172,10 +186,31 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                 },
               ),
               const SizedBox(height: 16),
-              const Text(
+              DropdownButtonFormField<String>(
+                initialValue: _accountId,
+                decoration: const InputDecoration(
+                  labelText: 'Account',
+                  prefixIcon: Icon(Icons.account_balance_outlined),
+                ),
+                items: widget.accounts
+                    .map(
+                      (account) => DropdownMenuItem(
+                        value: account.id,
+                        child: Text(account.name),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (accountId) {
+                  if (accountId != null) {
+                    setState(() => _accountId = accountId);
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              Text(
                 'Category',
                 style: TextStyle(
-                  color: expenseInk,
+                  color: palette.ink,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
@@ -184,7 +219,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: ExpenseCategory.all.map((category) {
+                children: widget.categories.map((category) {
                   final selected = _category == category.name;
                   return ChoiceChip(
                     label: Text(category.name),
@@ -194,9 +229,9 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                       color: selected ? Colors.white : category.color,
                     ),
                     selected: selected,
-                    selectedColor: expenseInk,
+                    selectedColor: palette.accent,
                     labelStyle: TextStyle(
-                      color: selected ? Colors.white : expenseInk,
+                      color: selected ? Colors.white : palette.ink,
                       fontSize: 12,
                     ),
                     onSelected: (_) =>
@@ -225,7 +260,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                 height: 52,
                 child: FilledButton(
                   onPressed: _submit,
-                  style: FilledButton.styleFrom(backgroundColor: expenseInk),
+                  style: FilledButton.styleFrom(backgroundColor: palette.ink),
                   child: Text(
                     editing ? 'Save changes' : 'Save expense',
                     style: const TextStyle(fontWeight: FontWeight.w700),

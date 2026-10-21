@@ -9,34 +9,31 @@ class EmptyExpensesState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.expensePalette;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: palette.surface,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: expenseLine),
+        border: Border.all(color: palette.line),
       ),
       child: Column(
         children: [
           Container(
             width: 54,
             height: 54,
-            decoration: const BoxDecoration(
-              color: expenseMint,
+            decoration: BoxDecoration(
+              color: palette.mint,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.savings_outlined,
-              color: expenseInk,
-              size: 25,
-            ),
+            child: Icon(Icons.savings_outlined, color: palette.ink, size: 25),
           ),
           const SizedBox(height: 13),
           Text(
             isToday ? 'A fresh start' : 'Nothing logged here',
-            style: const TextStyle(
-              color: expenseInk,
+            style: TextStyle(
+              color: palette.ink,
               fontSize: 16,
               fontWeight: FontWeight.w800,
             ),
@@ -47,11 +44,7 @@ class EmptyExpensesState extends StatelessWidget {
                 ? 'Add your first expense and keep your day in view.'
                 : 'There are no expenses for this day.',
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: expenseMuted,
-              fontSize: 13,
-              height: 1.5,
-            ),
+            style: TextStyle(color: palette.muted, fontSize: 13, height: 1.5),
           ),
         ],
       ),

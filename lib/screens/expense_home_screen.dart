@@ -10,15 +10,27 @@ import '../widgets/expense/expense_widget_styles.dart';
 import 'settings_screen.dart';
 
 class ExpenseHomeScreen extends StatefulWidget {
-  const ExpenseHomeScreen({super.key});
+  const ExpenseHomeScreen({
+    super.key,
+    required this.storage,
+    required this.accounts,
+    required this.themeMode,
+    required this.onThemeModeChanged,
+  });
+
+  final ExpenseStorage storage;
+  final List<ExpenseAccount> accounts;
+  final ThemeMode themeMode;
+  final Future<void> Function(BuildContext context, ThemeMode mode)
+  onThemeModeChanged;
 
   @override
   State<ExpenseHomeScreen> createState() => _ExpenseHomeScreenState();
 }
 
 class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
-  final _storage = ExpenseStorage();
   List<Expense> _expenses = [];
+  List<ExpenseCategory> _categories = ExpenseCategory.all;
   DateTime _selectedDate = DateUtils.dateOnly(DateTime.now());
   int _selectedDestination = 0;
   bool _loading = true;
@@ -36,10 +48,12 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
       _loadError = null;
     });
     try {
-      final expenses = await _storage.loadExpenses();
+      final expenses = await widget.storage.loadExpenses();
+      final categories = await widget.storage.loadCategories();
       if (!mounted) return;
       setState(() {
         _expenses = expenses;
+        _categories = categories;
         _loading = false;
       });
     } catch (error) {
@@ -84,12 +98,16 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (context) =>
-          ExpenseFormSheet(initial: expense, defaultDate: _selectedDate),
+      builder: (context) => ExpenseFormSheet(
+        initial: expense,
+        defaultDate: _selectedDate,
+        accounts: widget.accounts,
+        categories: _categories,
+      ),
     );
     if (result == null || !mounted) return;
 
@@ -142,7 +160,7 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
 
   Future<void> _persist(List<Expense> updated) async {
     try {
-      await _storage.saveExpenses(updated);
+      await widget.storage.saveExpenses(updated);
       if (mounted) setState(() => _expenses = updated);
     } catch (error) {
       if (mounted) {
@@ -166,7 +184,7 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: Theme.of(context).colorScheme
-              .copyWith(primary: expenseInk),
+              .copyWith(primary: context.expensePalette.ink),
         ),
         child: child!,
       ),
@@ -191,11 +209,12 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 680),
             child: _selectedDestination == 1
-                ? const SettingsScreen()
-                : _loading
-                ? const Center(
-                    child: CircularProgressIndicator(color: expenseInk),
+                ? SettingsScreen(
+                    themeMode: widget.themeMode,
+                    onThemeModeChanged: widget.onThemeModeChanged,
                   )
+                : _loading
+                ? const Center(child: CircularProgressIndicator())
                 : _loadError != null
                 ? ExpenseLoadErrorState(
                     error: _loadError!,
@@ -215,6 +234,7 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
                     onEditExpense: (expense) =>
                         _openExpenseForm(expense: expense),
                     onDeleteExpense: _deleteExpense,
+                    accounts: widget.accounts,
                   ),
           ),
         ),
