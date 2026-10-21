@@ -31,6 +31,8 @@ GitHub Actions runs `flutter analyze`, `flutter test`, and a release APK build
 when `main` is updated, including after a pull request is merged. After a
 successful build, CI updates
 [`android-release/app-release.apk`](android-release/app-release.apk) on `main`
-and also publishes it as a workflow artifact. APK-only commits do not trigger
-another build. Each changed APK is stored in Git history, so the repository
-will grow over time.
+and attaches it to a testing prerelease in the
+[GitHub Releases](https://github.com/Muthuraj5107220/KanakkuNote/releases) page.
+It also publishes the APK as a workflow artifact. APK-only commits do not
+trigger another build. Each changed APK is stored in Git history, so the
+repository will grow over time.
