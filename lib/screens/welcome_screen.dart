@@ -9,6 +9,7 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.expensePalette;
     return Scaffold(
       body: SafeArea(
         child: LayoutBuilder(
@@ -27,13 +28,13 @@ class WelcomeScreen extends StatelessWidget {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.receipt_long, color: expenseInk),
+                          Icon(Icons.receipt_long, color: palette.ink),
                           const SizedBox(width: 10),
                           Text(
                             'Kanakku Note',
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
-                                  color: expenseInk,
+                                  color: palette.ink,
                                   fontWeight: FontWeight.w700,
                                 ),
                           ),
@@ -44,13 +45,13 @@ class WelcomeScreen extends StatelessWidget {
                           Container(
                             width: 168,
                             height: 168,
-                            decoration: const BoxDecoration(
-                              color: expenseMint,
+                            decoration: BoxDecoration(
+                              color: palette.mint,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.account_balance_wallet_outlined,
-                              color: expenseInk,
+                              color: palette.ink,
                               size: 80,
                             ),
                           ),
@@ -60,7 +61,7 @@ class WelcomeScreen extends StatelessWidget {
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.headlineMedium
                                 ?.copyWith(
-                                  color: expenseInk,
+                                  color: palette.ink,
                                   fontWeight: FontWeight.w700,
                                   height: 1.15,
                                 ),
@@ -72,7 +73,7 @@ class WelcomeScreen extends StatelessWidget {
                             'your money.',
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(color: expenseMuted, height: 1.6),
+                                ?.copyWith(color: palette.muted, height: 1.6),
                           ),
                         ],
                       ),

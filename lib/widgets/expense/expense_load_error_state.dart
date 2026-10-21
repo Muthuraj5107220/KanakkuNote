@@ -14,6 +14,7 @@ class ExpenseLoadErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.expensePalette;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Center(
@@ -26,10 +27,10 @@ class ExpenseLoadErrorState extends StatelessWidget {
               size: 38,
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Could not load your expenses',
               style: TextStyle(
-                color: expenseInk,
+                color: palette.ink,
                 fontWeight: FontWeight.w800,
                 fontSize: 17,
               ),
@@ -38,7 +39,7 @@ class ExpenseLoadErrorState extends StatelessWidget {
             Text(
               '$error',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: expenseMuted),
+              style: TextStyle(color: palette.muted),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(

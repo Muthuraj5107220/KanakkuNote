@@ -85,12 +85,13 @@ class _CategorySetupScreenState extends State<CategorySetupScreen> {
   }
 
   Widget _categoryCard(ExpenseCategory category) {
+    final palette = context.expensePalette;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: expenseLine),
+        border: Border.all(color: palette.line),
       ),
       child: Row(
         children: [
@@ -99,13 +100,10 @@ class _CategorySetupScreenState extends State<CategorySetupScreen> {
           Expanded(
             child: Text(
               category.name,
-              style: const TextStyle(
-                color: expenseInk,
-                fontWeight: FontWeight.w700,
-              ),
+              style: TextStyle(color: palette.ink, fontWeight: FontWeight.w700),
             ),
           ),
-          const Icon(Icons.check_circle, color: expenseInk, size: 20),
+          Icon(Icons.check_circle, color: palette.ink, size: 20),
         ],
       ),
     );
@@ -113,6 +111,7 @@ class _CategorySetupScreenState extends State<CategorySetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.expensePalette;
     return Scaffold(
       body: SafeArea(
         child: LayoutBuilder(
@@ -129,9 +128,9 @@ class _CategorySetupScreenState extends State<CategorySetupScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.category_outlined,
-                        color: expenseInk,
+                        color: palette.ink,
                         size: 36,
                       ),
                       const SizedBox(height: 24),
@@ -139,16 +138,16 @@ class _CategorySetupScreenState extends State<CategorySetupScreen> {
                         'Create your categories',
                         style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(
-                              color: expenseInk,
+                              color: palette.ink,
                               fontWeight: FontWeight.w800,
                             ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Categories help organize your spending. We included '
                         'some to get you started; add any that fit your needs.',
                         style: TextStyle(
-                          color: expenseMuted,
+                          color: palette.muted,
                           fontSize: 15,
                           height: 1.5,
                         ),

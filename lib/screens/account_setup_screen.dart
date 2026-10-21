@@ -102,16 +102,17 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
   }
 
   Widget _accountCard(ExpenseAccount account) {
+    final palette = context.expensePalette;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: expenseLine),
+        border: Border.all(color: palette.line),
       ),
       child: Row(
         children: [
-          const Icon(Icons.account_balance_outlined, color: expenseInk),
+          Icon(Icons.account_balance_outlined, color: palette.ink),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -119,20 +120,20 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
               children: [
                 Text(
                   account.name,
-                  style: const TextStyle(
-                    color: expenseInk,
+                  style: TextStyle(
+                    color: palette.ink,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   'Opening balance: ${_currencyFormat.format(account.openingBalancePaise / 100)}',
-                  style: const TextStyle(color: expenseMuted, fontSize: 12),
+                  style: TextStyle(color: palette.muted, fontSize: 12),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.check_circle, color: expenseInk, size: 20),
+          Icon(Icons.check_circle, color: palette.ink, size: 20),
         ],
       ),
     );
@@ -140,6 +141,7 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.expensePalette;
     return Scaffold(
       body: SafeArea(
         child: LayoutBuilder(
@@ -156,9 +158,9 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.account_balance_wallet_outlined,
-                        color: expenseInk,
+                        color: palette.ink,
                         size: 36,
                       ),
                       const SizedBox(height: 24),
@@ -166,16 +168,16 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
                         'Create your accounts',
                         style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(
-                              color: expenseInk,
+                              color: palette.ink,
                               fontWeight: FontWeight.w800,
                             ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Add the places you spend from, like Cash, Bank, or '
                         'UPI. You can assign each expense to an account.',
                         style: TextStyle(
-                          color: expenseMuted,
+                          color: palette.muted,
                           fontSize: 15,
                           height: 1.5,
                         ),
@@ -239,11 +241,11 @@ class _AccountSetupScreenState extends State<AccountSetupScreen> {
                       ),
                       const SizedBox(height: 8),
                       if (_accounts.isEmpty)
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.only(top: 16),
                           child: Text(
                             'Add at least one account to continue.',
-                            style: TextStyle(color: expenseMuted),
+                            style: TextStyle(color: palette.muted),
                           ),
                         )
                       else ...[

@@ -14,10 +14,15 @@ class ExpenseHomeScreen extends StatefulWidget {
     super.key,
     required this.storage,
     required this.accounts,
+    required this.themeMode,
+    required this.onThemeModeChanged,
   });
 
   final ExpenseStorage storage;
   final List<ExpenseAccount> accounts;
+  final ThemeMode themeMode;
+  final Future<void> Function(BuildContext context, ThemeMode mode)
+  onThemeModeChanged;
 
   @override
   State<ExpenseHomeScreen> createState() => _ExpenseHomeScreenState();
@@ -93,7 +98,7 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -179,7 +184,7 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: Theme.of(context).colorScheme
-              .copyWith(primary: expenseInk),
+              .copyWith(primary: context.expensePalette.ink),
         ),
         child: child!,
       ),
@@ -204,11 +209,12 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 680),
             child: _selectedDestination == 1
-                ? const SettingsScreen()
-                : _loading
-                ? const Center(
-                    child: CircularProgressIndicator(color: expenseInk),
+                ? SettingsScreen(
+                    themeMode: widget.themeMode,
+                    onThemeModeChanged: widget.onThemeModeChanged,
                   )
+                : _loading
+                ? const Center(child: CircularProgressIndicator())
                 : _loadError != null
                 ? ExpenseLoadErrorState(
                     error: _loadError!,

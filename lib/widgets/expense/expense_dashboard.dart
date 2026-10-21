@@ -48,6 +48,7 @@ class ExpenseDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.expensePalette;
     return CustomScrollView(
       slivers: [
         SliverPadding(
@@ -61,16 +62,16 @@ class ExpenseDashboard extends StatelessWidget {
           sliver: SliverToBoxAdapter(
             child: Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Your money, in focus',
-                    style: TextStyle(color: expenseMuted, fontSize: 14),
+                    style: TextStyle(color: palette.muted, fontSize: 14),
                   ),
                 ),
                 Text(
                   DateFormat('MMMM yyyy').format(selectedDate),
-                  style: const TextStyle(
-                    color: expenseInk,
+                  style: TextStyle(
+                    color: palette.ink,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -105,19 +106,19 @@ class ExpenseDashboard extends StatelessWidget {
           sliver: SliverToBoxAdapter(
             child: Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Your expenses',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: expenseInk,
+                      color: palette.ink,
                     ),
                   ),
                 ),
                 Text(
                   '${dayExpenses.length} ${dayExpenses.length == 1 ? 'entry' : 'entries'}',
-                  style: const TextStyle(color: expenseMuted, fontSize: 13),
+                  style: TextStyle(color: palette.muted, fontSize: 13),
                 ),
               ],
             ),

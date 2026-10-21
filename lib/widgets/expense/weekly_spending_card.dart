@@ -22,6 +22,7 @@ class WeeklySpendingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.expensePalette;
     final monday = selectedDate.subtract(
       Duration(days: selectedDate.weekday - 1),
     );
@@ -36,20 +37,20 @@ class WeeklySpendingCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 17, 18, 15),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: palette.surface,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: expenseLine),
+        border: Border.all(color: palette.line),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'This week',
                   style: TextStyle(
-                    color: expenseInk,
+                    color: palette.ink,
                     fontWeight: FontWeight.w800,
                     fontSize: 15,
                   ),
@@ -57,7 +58,7 @@ class WeeklySpendingCard extends StatelessWidget {
               ),
               Text(
                 '${DateFormat('d MMM').format(days.first)} — ${DateFormat('d MMM').format(days.last)}',
-                style: const TextStyle(color: expenseMuted, fontSize: 12),
+                style: TextStyle(color: palette.muted, fontSize: 12),
               ),
             ],
           ),
@@ -86,7 +87,7 @@ class WeeklySpendingCard extends StatelessWidget {
                               height: amount == 0 ? 5 : 9 + normalized * 39,
                               decoration: BoxDecoration(
                                 color: selected
-                                    ? expenseInk
+                                    ? palette.ink
                                     : const Color(0xFFB6D5BE),
                                 borderRadius: BorderRadius.circular(9),
                               ),
@@ -97,7 +98,7 @@ class WeeklySpendingCard extends StatelessWidget {
                         Text(
                           DateFormat('E').format(day).substring(0, 1),
                           style: TextStyle(
-                            color: selected ? expenseInk : expenseMuted,
+                            color: selected ? palette.ink : palette.muted,
                             fontSize: 12,
                             fontWeight: selected
                                 ? FontWeight.w800
@@ -108,7 +109,7 @@ class WeeklySpendingCard extends StatelessWidget {
                         Text(
                           '${day.day}',
                           style: TextStyle(
-                            color: selected ? expenseInk : expenseMuted,
+                            color: selected ? palette.ink : palette.muted,
                             fontSize: 11,
                             fontWeight: selected
                                 ? FontWeight.w800

@@ -9,25 +9,26 @@ class ExpenseHomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.expensePalette;
     return Row(
       children: [
         Container(
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-            color: expenseInk,
+            color: palette.accent,
             borderRadius: BorderRadius.circular(14),
           ),
           child: const Icon(Icons.spa_rounded, color: Colors.white, size: 23),
         ),
         const SizedBox(width: 12),
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'kanakku note',
               style: TextStyle(
-                color: expenseInk,
+                color: palette.ink,
                 fontSize: 17,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -.4,
@@ -35,7 +36,7 @@ class ExpenseHomeHeader extends StatelessWidget {
             ),
             Text(
               'A little clarity, every day',
-              style: TextStyle(color: expenseMuted, fontSize: 12),
+              style: TextStyle(color: palette.muted, fontSize: 12),
             ),
           ],
         ),
@@ -43,8 +44,8 @@ class ExpenseHomeHeader extends StatelessWidget {
         IconButton(
           tooltip: 'Choose date',
           onPressed: onChooseDate,
-          style: IconButton.styleFrom(backgroundColor: Colors.white),
-          icon: const Icon(Icons.calendar_month_rounded, color: expenseInk),
+          style: IconButton.styleFrom(backgroundColor: palette.surface),
+          icon: Icon(Icons.calendar_month_rounded, color: palette.ink),
         ),
       ],
     );

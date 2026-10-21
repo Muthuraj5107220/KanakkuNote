@@ -215,6 +215,34 @@ void main() {
     expect(find.text('Your money, in focus'), findsOneWidget);
   });
 
+  testWidgets('theme selection applies and persists across app restarts', (
+    tester,
+  ) async {
+    await openDashboard(tester);
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Theme'), findsOneWidget);
+    await tester.tap(find.text('Dark'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+      ThemeMode.dark,
+    );
+    final preferences = await SharedPreferences.getInstance();
+    expect(preferences.getString('kanakku_note.theme_mode.v1'), 'dark');
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(KanakkuNoteApp(storage: storage));
+    await pumpUntilReady(tester);
+    expect(
+      tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+      ThemeMode.dark,
+    );
+  });
+
   testWidgets('adds an expense to the selected day', (tester) async {
     await openDashboard(tester);
 

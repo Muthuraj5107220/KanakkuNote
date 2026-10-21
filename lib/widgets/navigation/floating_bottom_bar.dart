@@ -16,18 +16,19 @@ class FloatingBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.expensePalette;
     return SafeArea(
       minimum: const EdgeInsets.fromLTRB(18, 0, 18, 12),
       child: Container(
         height: 72,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: palette.surface,
           borderRadius: BorderRadius.circular(26),
-          border: Border.all(color: expenseLine),
+          border: Border.all(color: palette.line),
           boxShadow: [
             BoxShadow(
-              color: expenseInk.withValues(alpha: .10),
+              color: palette.ink.withValues(alpha: .10),
               blurRadius: 22,
               offset: const Offset(0, 8),
             ),
@@ -78,7 +79,8 @@ class _NavigationDestination extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? expenseInk : expenseMuted;
+    final palette = context.expensePalette;
+    final color = selected ? palette.ink : palette.muted;
     return Semantics(
       button: true,
       selected: selected,
@@ -115,6 +117,7 @@ class _AddExpenseDestination extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.expensePalette;
     return Semantics(
       button: true,
       enabled: onTap != null,
@@ -131,8 +134,8 @@ class _AddExpenseDestination extends StatelessWidget {
                 height: 34,
                 decoration: BoxDecoration(
                   color: onTap == null
-                      ? expenseMuted.withValues(alpha: .5)
-                      : expenseInk,
+                      ? palette.muted.withValues(alpha: .5)
+                      : palette.accent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
@@ -142,10 +145,10 @@ class _AddExpenseDestination extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 2),
-              const Text(
+              Text(
                 'Add expense',
                 style: TextStyle(
-                  color: expenseInk,
+                  color: palette.ink,
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
                 ),

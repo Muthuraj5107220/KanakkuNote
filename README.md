@@ -6,6 +6,7 @@ A simple, local-first daily expense manager built with Flutter.
 
 - Add, edit, and delete expenses with a category, optional note, amount, and date.
 - Create custom spending categories during setup and use them on expenses.
+- Choose system, light, or dark appearance in Settings.
 - Browse daily totals and a weekly spending overview.
 - See your monthly total and daily expense list.
 - Keep expenses, accounts, and categories on your device in a local SQLite database.
