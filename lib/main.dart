@@ -69,10 +69,12 @@ class _KanakkuNoteAppState extends State<KanakkuNoteApp> {
     }
   }
 
-  void _completeAccountSetup(List<ExpenseAccount> accounts) {
+  Future<void> _completeAccountSetup(List<ExpenseAccount> accounts) async {
     if (accounts.isEmpty) return;
+    final savedAccounts = await _storage.loadAccounts();
+    if (savedAccounts.isEmpty) return;
     setState(() {
-      _accountsOverride = accounts;
+      _accountsOverride = savedAccounts;
       _pageOverride = _AppPage.expenses;
     });
   }

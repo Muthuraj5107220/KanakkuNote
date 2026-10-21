@@ -31,10 +31,15 @@ class ExpenseCategory {
 }
 
 class ExpenseAccount {
-  const ExpenseAccount({required this.id, required this.name});
+  const ExpenseAccount({
+    required this.id,
+    required this.name,
+    this.openingBalancePaise = 0,
+  });
 
   final String id;
   final String name;
+  final int openingBalancePaise;
 }
 
 class Expense {

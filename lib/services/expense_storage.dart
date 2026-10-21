@@ -27,7 +27,7 @@ class ExpenseStorage {
     final database = await _databaseFactory.openDatabase(
       resolvedPath,
       options: OpenDatabaseOptions(
-        version: 1,
+        version: 2,
         onConfigure: (database) async {
           await database.execute('PRAGMA foreign_keys = ON');
         },
@@ -35,7 +35,8 @@ class ExpenseStorage {
           await database.execute('''
             CREATE TABLE accounts (
               id TEXT PRIMARY KEY,
-              name TEXT NOT NULL COLLATE NOCASE UNIQUE
+              name TEXT NOT NULL COLLATE NOCASE UNIQUE,
+              opening_balance_paise INTEGER NOT NULL DEFAULT 0
             )
           ''');
           await database.execute('''
@@ -53,6 +54,14 @@ class ExpenseStorage {
           await database.execute(
             'CREATE INDEX expenses_date_idx ON expenses(date)',
           );
+        },
+        onUpgrade: (database, oldVersion, newVersion) async {
+          if (oldVersion < 2) {
+            await database.execute(
+              'ALTER TABLE accounts ADD COLUMN '
+              'opening_balance_paise INTEGER NOT NULL DEFAULT 0',
+            );
+          }
         },
       ),
     );
@@ -126,22 +135,38 @@ class ExpenseStorage {
           (row) => ExpenseAccount(
             id: row['id'] as String,
             name: row['name'] as String,
+            openingBalancePaise: row['opening_balance_paise'] as int,
           ),
         )
         .toList(growable: false);
   }
 
-  Future<ExpenseAccount> addAccount(String name) async {
+  Future<ExpenseAccount> addAccount(
+    String name, {
+    int openingBalancePaise = 0,
+  }) async {
     final normalizedName = name.trim();
     if (normalizedName.isEmpty) {
       throw ArgumentError.value(name, 'name', 'Account name cannot be empty.');
     }
+    if (openingBalancePaise < 0) {
+      throw ArgumentError.value(
+        openingBalancePaise,
+        'openingBalancePaise',
+        'Opening balance cannot be negative.',
+      );
+    }
     final account = ExpenseAccount(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       name: normalizedName,
+      openingBalancePaise: openingBalancePaise,
     );
     final database = await _openDatabase();
-    await database.insert('accounts', {'id': account.id, 'name': account.name});
+    await database.insert('accounts', {
+      'id': account.id,
+      'name': account.name,
+      'opening_balance_paise': account.openingBalancePaise,
+    });
     return account;
   }
 

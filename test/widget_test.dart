@@ -1,9 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kanakku_note/main.dart';
+import 'package:kanakku_note/models/expense.dart';
+import 'package:kanakku_note/screens/account_setup_screen.dart';
 import 'package:kanakku_note/services/expense_storage.dart';
+import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -40,29 +44,19 @@ void main() {
   }
 
   Future<void> openDashboard(WidgetTester tester) async {
-    await tester.runAsync(storage.initialize);
+    await tester.runAsync(() async {
+      await storage.initialize();
+      await storage.addAccount('Cash');
+      SharedPreferences.setMockInitialValues({
+        'kanakku_note.welcome_completed.v1': true,
+        'kanakku_note.sqlite_migration_completed.v1': true,
+      });
+    });
     await tester.pumpWidget(KanakkuNoteApp(storage: storage));
     await pumpUntilReady(tester);
-
-    if (find.text('Next').evaluate().isNotEmpty) {
-      await tester.tap(find.text('Next'));
-      await tester.pump(const Duration(milliseconds: 500));
-    }
-    if (find.text('Create your accounts').evaluate().isNotEmpty) {
-      await tester.enterText(find.byType(TextField).first, 'Cash');
-      await tester.tap(find.byTooltip('Add account'));
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 100)),
-      );
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.tap(find.text('Continue'));
-      await pumpUntilReady(tester);
-    }
   }
 
-  testWidgets('requires an account after welcome and continues to dashboard', (
-    tester,
-  ) async {
+  testWidgets('shows account setup after the welcome screen', (tester) async {
     await tester.runAsync(storage.initialize);
     await tester.pumpWidget(KanakkuNoteApp(storage: storage));
     await pumpUntilReady(tester);
@@ -74,22 +68,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Create your accounts'), findsOneWidget);
     expect(find.text('Add at least one account to continue.'), findsOneWidget);
-    expect(
-      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
-      isNull,
-    );
-
-    await tester.enterText(find.byType(TextField).first, 'Cash');
-    await tester.tap(find.byTooltip('Add account'));
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 100)),
-    );
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(find.text('Cash'), findsOneWidget);
-    await tester.tap(find.text('Continue'));
-    await pumpUntilReady(tester);
-
-    expect(find.text('Your money, in focus'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
@@ -97,9 +75,59 @@ void main() {
     await pumpUntilReady(tester);
 
     expect(find.text('A clearer view of your spending'), findsNothing);
-    expect(find.text('Create your accounts'), findsNothing);
-    expect(find.text('Your money, in focus'), findsOneWidget);
+    expect(find.text('Create your accounts'), findsOneWidget);
   });
+
+  testWidgets(
+    'creates an account with an opening balance and enables continue',
+    (tester) async {
+      await tester.runAsync(storage.initialize);
+      var continuedAccounts = <ExpenseAccount>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: AccountSetupScreen(
+            storage: storage,
+            initialAccounts: const [],
+            onContinue: (accounts) async {
+              continuedAccounts = accounts;
+            },
+          ),
+        ),
+      );
+
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNull,
+      );
+
+      await tester.enterText(find.byType(TextFormField).at(0), 'Cash');
+      await tester.enterText(find.byType(TextFormField).at(1), '-1');
+      await tester.tap(find.byTooltip('Add account'));
+      await tester.pump();
+      expect(find.text('Enter a valid non-negative amount'), findsOneWidget);
+      expect(await tester.runAsync(storage.loadAccounts), isEmpty);
+
+      await tester.enterText(find.byType(TextFormField).at(1), '1234.56');
+      await tester.tap(find.byTooltip('Add account'));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Opening balance: ₹1,234.56'), findsOneWidget);
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNotNull,
+      );
+      await tester.tap(find.text('Continue'));
+
+      expect(continuedAccounts, hasLength(1));
+      expect(continuedAccounts.single.name, 'Cash');
+      expect(continuedAccounts.single.openingBalancePaise, 123456);
+      final savedAccounts = await tester.runAsync(storage.loadAccounts);
+      expect(savedAccounts!.single.openingBalancePaise, 123456);
+    },
+  );
 
   testWidgets('shows the daily expense dashboard', (tester) async {
     await openDashboard(tester);
@@ -187,4 +215,67 @@ void main() {
     expect(accounts, hasLength(1));
     expect(accounts.single.name, 'Cash');
   });
+
+  test('persists an account opening balance in SQLite', () async {
+    await storage.initialize();
+    await storage.addAccount('Savings', openingBalancePaise: 287550);
+
+    final accounts = await storage.loadAccounts();
+    expect(accounts.single.name, 'Savings');
+    expect(accounts.single.openingBalancePaise, 287550);
+  });
+
+  test(
+    'upgrades existing SQLite accounts with a zero opening balance',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'kanakku-note-db-upgrade-',
+      );
+      final databasePath = path.join(directory.path, 'legacy.db');
+      final legacyDatabase = await databaseFactoryFfi.openDatabase(
+        databasePath,
+        options: OpenDatabaseOptions(
+          version: 1,
+          onCreate: (database, version) async {
+            await database.execute('''
+            CREATE TABLE accounts (
+              id TEXT PRIMARY KEY,
+              name TEXT NOT NULL COLLATE NOCASE UNIQUE
+            )
+          ''');
+            await database.insert('accounts', {
+              'id': 'existing-account',
+              'name': 'Existing',
+            });
+            await database.execute('''
+            CREATE TABLE expenses (
+              id TEXT PRIMARY KEY,
+              title TEXT NOT NULL,
+              amount_paise INTEGER NOT NULL,
+              category TEXT NOT NULL,
+              date TEXT NOT NULL,
+              note TEXT NOT NULL,
+              account_id TEXT
+            )
+          ''');
+          },
+        ),
+      );
+      await legacyDatabase.close();
+
+      final upgradedStorage = ExpenseStorage(
+        factory: databaseFactoryFfi,
+        databasePath: databasePath,
+      );
+      try {
+        await upgradedStorage.initialize();
+        final accounts = await upgradedStorage.loadAccounts();
+        expect(accounts.single.name, 'Existing');
+        expect(accounts.single.openingBalancePaise, 0);
+      } finally {
+        await upgradedStorage.close();
+        await directory.delete(recursive: true);
+      }
+    },
+  );
 }
