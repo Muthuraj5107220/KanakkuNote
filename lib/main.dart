@@ -4,12 +4,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'models/expense.dart';
 import 'services/expense_storage.dart';
 import 'screens/account_setup_screen.dart';
+import 'screens/category_setup_screen.dart';
 import 'screens/expense_home_screen.dart';
 import 'screens/welcome_screen.dart';
 
 const _welcomeCompletedKey = 'kanakku_note.welcome_completed.v1';
 
-enum _AppPage { welcome, accountSetup, expenses }
+enum _AppPage { welcome, accountSetup, categorySetup, expenses }
 
 class _AppStart {
   const _AppStart(this.page, [this.accounts = const []]);
@@ -73,8 +74,23 @@ class _KanakkuNoteAppState extends State<KanakkuNoteApp> {
     if (accounts.isEmpty) return;
     final savedAccounts = await _storage.loadAccounts();
     if (savedAccounts.isEmpty) return;
+    final categories = await _storage.loadCategories();
+    if (!mounted) return;
     setState(() {
       _accountsOverride = savedAccounts;
+      _categoriesOverride = categories;
+      _pageOverride = _AppPage.categorySetup;
+    });
+  }
+
+  List<ExpenseCategory> _categoriesOverride = const [];
+
+  Future<void> _completeCategorySetup(List<ExpenseCategory> categories) async {
+    if (categories.isEmpty) return;
+    final savedCategories = await _storage.loadCategories();
+    if (savedCategories.isEmpty || !mounted) return;
+    setState(() {
+      _categoriesOverride = savedCategories;
       _pageOverride = _AppPage.expenses;
     });
   }
@@ -139,6 +155,11 @@ class _KanakkuNoteAppState extends State<KanakkuNoteApp> {
               storage: _storage,
               initialAccounts: accounts,
               onContinue: _completeAccountSetup,
+            ),
+            _AppPage.categorySetup => CategorySetupScreen(
+              storage: _storage,
+              initialCategories: _categoriesOverride,
+              onContinue: _completeCategorySetup,
             ),
             _AppPage.expenses => ExpenseHomeScreen(
               storage: _storage,

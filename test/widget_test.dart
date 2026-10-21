@@ -36,10 +36,21 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       if (find.text('A clearer view of your spending').evaluate().isNotEmpty ||
           find.text('Create your accounts').evaluate().isNotEmpty ||
+          find.text('Create your categories').evaluate().isNotEmpty ||
           find.text('Your money, in focus').evaluate().isNotEmpty ||
           find.textContaining('Could not start app').evaluate().isNotEmpty) {
         return;
       }
+    }
+  }
+
+  Future<void> pumpUntilVisible(WidgetTester tester, Finder finder) async {
+    for (var i = 0; i < 20; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+      if (finder.evaluate().isNotEmpty) return;
     }
   }
 
@@ -128,6 +139,51 @@ void main() {
       expect(savedAccounts!.single.openingBalancePaise, 123456);
     },
   );
+
+  testWidgets('continues from account creation to category creation', (
+    tester,
+  ) async {
+    await tester.runAsync(storage.initialize);
+    await tester.pumpWidget(KanakkuNoteApp(storage: storage));
+    await pumpUntilReady(tester);
+
+    await tester.tap(find.text('Next'));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.enterText(find.byType(TextFormField).at(0), 'Cash');
+    await tester.tap(find.byTooltip('Add account'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('Cash'), findsOneWidget);
+    await tester.tap(find.text('Continue'));
+    await pumpUntilVisible(tester, find.text('Create your categories'));
+
+    expect(find.text('Create your categories'), findsOneWidget);
+    expect(find.text('Food & drink'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField).at(0), 'Pets');
+    await tester.tap(find.byTooltip('Add category'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('Pets'), findsOneWidget);
+    final categories = await tester.runAsync(storage.loadCategories);
+    expect(categories!.any((category) => category.name == 'Pets'), isTrue);
+
+    await tester.ensureVisible(find.text('Continue'));
+    await tester.tap(find.text('Continue'));
+    await pumpUntilVisible(tester, find.text('Your money, in focus'));
+    expect(find.text('Your money, in focus'), findsOneWidget);
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add expense'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(ChoiceChip, 'Pets'), findsOneWidget);
+  });
 
   testWidgets('shows the daily expense dashboard', (tester) async {
     await openDashboard(tester);
@@ -225,6 +281,16 @@ void main() {
     expect(accounts.single.openingBalancePaise, 287550);
   });
 
+  test('persists custom categories and rejects duplicate names', () async {
+    await storage.initialize();
+    final category = await storage.addCategory('Household');
+    expect(category.name, 'Household');
+
+    final categories = await storage.loadCategories();
+    expect(categories.map((item) => item.name), contains('Household'));
+    expect(() => storage.addCategory('household'), throwsA(isA<Exception>()));
+  });
+
   test(
     'upgrades existing SQLite accounts with a zero opening balance',
     () async {
@@ -270,8 +336,13 @@ void main() {
       try {
         await upgradedStorage.initialize();
         final accounts = await upgradedStorage.loadAccounts();
+        final categories = await upgradedStorage.loadCategories();
         expect(accounts.single.name, 'Existing');
         expect(accounts.single.openingBalancePaise, 0);
+        expect(
+          categories.map((category) => category.name),
+          contains('Food & drink'),
+        );
       } finally {
         await upgradedStorage.close();
         await directory.delete(recursive: true);

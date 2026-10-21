@@ -26,7 +26,8 @@ class ExpenseCategory {
 
   static ExpenseCategory fromName(String name) => all.firstWhere(
     (category) => category.name == name,
-    orElse: () => all.last,
+    orElse: () =>
+        ExpenseCategory(name, Icons.category_rounded, const Color(0xFF71877E)),
   );
 }
 

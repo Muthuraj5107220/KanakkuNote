@@ -10,11 +10,13 @@ class ExpenseFormSheet extends StatefulWidget {
     this.initial,
     required this.defaultDate,
     required this.accounts,
+    required this.categories,
   });
 
   final Expense? initial;
   final DateTime defaultDate;
   final List<ExpenseAccount> accounts;
+  final List<ExpenseCategory> categories;
 
   @override
   State<ExpenseFormSheet> createState() => _ExpenseFormSheetState();
@@ -216,7 +218,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: ExpenseCategory.all.map((category) {
+                children: widget.categories.map((category) {
                   final selected = _category == category.name;
                   return ChoiceChip(
                     label: Text(category.name),

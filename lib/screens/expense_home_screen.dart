@@ -25,6 +25,7 @@ class ExpenseHomeScreen extends StatefulWidget {
 
 class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
   List<Expense> _expenses = [];
+  List<ExpenseCategory> _categories = ExpenseCategory.all;
   DateTime _selectedDate = DateUtils.dateOnly(DateTime.now());
   int _selectedDestination = 0;
   bool _loading = true;
@@ -43,9 +44,11 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
     });
     try {
       final expenses = await widget.storage.loadExpenses();
+      final categories = await widget.storage.loadCategories();
       if (!mounted) return;
       setState(() {
         _expenses = expenses;
+        _categories = categories;
         _loading = false;
       });
     } catch (error) {
@@ -98,6 +101,7 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
         initial: expense,
         defaultDate: _selectedDate,
         accounts: widget.accounts,
+        categories: _categories,
       ),
     );
     if (result == null || !mounted) return;

@@ -27,7 +27,7 @@ class ExpenseStorage {
     final database = await _databaseFactory.openDatabase(
       resolvedPath,
       options: OpenDatabaseOptions(
-        version: 2,
+        version: 3,
         onConfigure: (database) async {
           await database.execute('PRAGMA foreign_keys = ON');
         },
@@ -54,6 +54,7 @@ class ExpenseStorage {
           await database.execute(
             'CREATE INDEX expenses_date_idx ON expenses(date)',
           );
+          await _createCategoriesTable(database);
         },
         onUpgrade: (database, oldVersion, newVersion) async {
           if (oldVersion < 2) {
@@ -61,6 +62,9 @@ class ExpenseStorage {
               'ALTER TABLE accounts ADD COLUMN '
               'opening_balance_paise INTEGER NOT NULL DEFAULT 0',
             );
+          }
+          if (oldVersion < 3) {
+            await _createCategoriesTable(database);
           }
         },
       ),
@@ -73,6 +77,17 @@ class ExpenseStorage {
     final database = _database;
     _database = null;
     await database?.close();
+  }
+
+  Future<void> _createCategoriesTable(DatabaseExecutor executor) async {
+    await executor.execute('''
+      CREATE TABLE categories (
+        name TEXT NOT NULL COLLATE NOCASE PRIMARY KEY
+      )
+    ''');
+    for (final category in ExpenseCategory.all) {
+      await executor.insert('categories', {'name': category.name});
+    }
   }
 
   Future<void> initialize() async {
@@ -168,6 +183,28 @@ class ExpenseStorage {
       'opening_balance_paise': account.openingBalancePaise,
     });
     return account;
+  }
+
+  Future<List<ExpenseCategory>> loadCategories() async {
+    final database = await _openDatabase();
+    final rows = await database.query(
+      'categories',
+      orderBy: 'name COLLATE NOCASE',
+    );
+    return rows
+        .map((row) => ExpenseCategory.fromName(row['name'] as String))
+        .toList(growable: false);
+  }
+
+  Future<ExpenseCategory> addCategory(String name) async {
+    final normalizedName = name.trim();
+    if (normalizedName.isEmpty) {
+      throw ArgumentError.value(name, 'name', 'Category name cannot be empty.');
+    }
+    final category = ExpenseCategory.fromName(normalizedName);
+    final database = await _openDatabase();
+    await database.insert('categories', {'name': category.name});
+    return category;
   }
 
   Future<void> saveExpenses(List<Expense> expenses) async {
