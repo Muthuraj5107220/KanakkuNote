@@ -5,10 +5,16 @@ import '../../models/expense.dart';
 import 'expense_widget_styles.dart';
 
 class ExpenseFormSheet extends StatefulWidget {
-  const ExpenseFormSheet({super.key, this.initial, required this.defaultDate});
+  const ExpenseFormSheet({
+    super.key,
+    this.initial,
+    required this.defaultDate,
+    required this.accounts,
+  });
 
   final Expense? initial;
   final DateTime defaultDate;
+  final List<ExpenseAccount> accounts;
 
   @override
   State<ExpenseFormSheet> createState() => _ExpenseFormSheetState();
@@ -20,6 +26,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
   late final TextEditingController _amountController;
   late final TextEditingController _noteController;
   late String _category;
+  late String _accountId;
   late DateTime _date;
 
   @override
@@ -34,6 +41,9 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
     );
     _noteController = TextEditingController(text: expense?.note ?? '');
     _category = expense?.category ?? ExpenseCategory.all.first.name;
+    _accountId =
+        expense?.accountId ??
+        (widget.accounts.isEmpty ? '' : widget.accounts.first.id);
     _date =
         expense?.date ??
         DateTime(
@@ -75,6 +85,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
       amountPaise: _parsePaise(_amountController.text)!,
       category: _category,
       date: _date,
+      accountId: _accountId,
       note: _noteController.text.trim(),
     );
     Navigator.pop(context, expense);
@@ -169,6 +180,27 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                   return amount == null || amount <= 0
                       ? 'Enter an amount greater than zero'
                       : null;
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                initialValue: _accountId,
+                decoration: const InputDecoration(
+                  labelText: 'Account',
+                  prefixIcon: Icon(Icons.account_balance_outlined),
+                ),
+                items: widget.accounts
+                    .map(
+                      (account) => DropdownMenuItem(
+                        value: account.id,
+                        child: Text(account.name),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (accountId) {
+                  if (accountId != null) {
+                    setState(() => _accountId = accountId);
+                  }
                 },
               ),
               const SizedBox(height: 16),

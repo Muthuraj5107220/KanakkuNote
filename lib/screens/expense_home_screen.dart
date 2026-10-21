@@ -10,14 +10,20 @@ import '../widgets/expense/expense_widget_styles.dart';
 import 'settings_screen.dart';
 
 class ExpenseHomeScreen extends StatefulWidget {
-  const ExpenseHomeScreen({super.key});
+  const ExpenseHomeScreen({
+    super.key,
+    required this.storage,
+    required this.accounts,
+  });
+
+  final ExpenseStorage storage;
+  final List<ExpenseAccount> accounts;
 
   @override
   State<ExpenseHomeScreen> createState() => _ExpenseHomeScreenState();
 }
 
 class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
-  final _storage = ExpenseStorage();
   List<Expense> _expenses = [];
   DateTime _selectedDate = DateUtils.dateOnly(DateTime.now());
   int _selectedDestination = 0;
@@ -36,7 +42,7 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
       _loadError = null;
     });
     try {
-      final expenses = await _storage.loadExpenses();
+      final expenses = await widget.storage.loadExpenses();
       if (!mounted) return;
       setState(() {
         _expenses = expenses;
@@ -88,8 +94,11 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (context) =>
-          ExpenseFormSheet(initial: expense, defaultDate: _selectedDate),
+      builder: (context) => ExpenseFormSheet(
+        initial: expense,
+        defaultDate: _selectedDate,
+        accounts: widget.accounts,
+      ),
     );
     if (result == null || !mounted) return;
 
@@ -142,7 +151,7 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
 
   Future<void> _persist(List<Expense> updated) async {
     try {
-      await _storage.saveExpenses(updated);
+      await widget.storage.saveExpenses(updated);
       if (mounted) setState(() => _expenses = updated);
     } catch (error) {
       if (mounted) {
@@ -215,6 +224,7 @@ class _ExpenseHomeScreenState extends State<ExpenseHomeScreen> {
                     onEditExpense: (expense) =>
                         _openExpenseForm(expense: expense),
                     onDeleteExpense: _deleteExpense,
+                    accounts: widget.accounts,
                   ),
           ),
         ),

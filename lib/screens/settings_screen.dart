@@ -32,13 +32,13 @@ class SettingsScreen extends StatelessWidget {
                 _SettingsSection(
                   icon: Icons.shield_outlined,
                   title: 'Privacy',
-                  description: 'Your expenses stay on this device. Kanakku Note does not require an account or send your entries to a server.',
+                  description: 'Your expense and account data stay on this device. No online account is required, and entries are not sent to a server.',
                 ),
                 const SizedBox(height: 14),
                 _SettingsSection(
                   icon: Icons.storage_outlined,
                   title: 'Expense storage',
-                  description: 'Expense data is saved locally on your device so it is available when you reopen the app.',
+                  description: 'Expenses and accounts are saved in a local SQLite database on your device.',
                 ),
                 const SizedBox(height: 14),
                 _SettingsSection(

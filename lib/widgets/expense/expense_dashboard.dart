@@ -23,6 +23,7 @@ class ExpenseDashboard extends StatelessWidget {
     required this.onSelectDate,
     required this.onEditExpense,
     required this.onDeleteExpense,
+    required this.accounts,
   });
 
   final DateTime selectedDate;
@@ -36,6 +37,7 @@ class ExpenseDashboard extends StatelessWidget {
   final ValueChanged<DateTime> onSelectDate;
   final ValueChanged<Expense> onEditExpense;
   final ValueChanged<Expense> onDeleteExpense;
+  final List<ExpenseAccount> accounts;
 
   bool get _isToday {
     final today = DateUtils.dateOnly(DateTime.now());
@@ -136,8 +138,13 @@ class ExpenseDashboard extends StatelessWidget {
               separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final expense = dayExpenses[index];
+                final accountName = accounts
+                    .where((account) => account.id == expense.accountId)
+                    .map((account) => account.name)
+                    .firstOrNull;
                 return ExpenseListTile(
                   expense: expense,
+                  accountName: accountName,
                   onEdit: () => onEditExpense(expense),
                   onDelete: () => onDeleteExpense(expense),
                 );

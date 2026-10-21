@@ -8,11 +8,13 @@ class ExpenseListTile extends StatelessWidget {
   const ExpenseListTile({
     super.key,
     required this.expense,
+    required this.accountName,
     required this.onEdit,
     required this.onDelete,
   });
 
   final Expense expense;
+  final String? accountName;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -59,7 +61,11 @@ class ExpenseListTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${expense.category}  ·  ${DateFormat('h:mm a').format(expense.date)}',
+                      [
+                        expense.category,
+                        ?accountName,
+                        DateFormat('h:mm a').format(expense.date),
+                      ].join('  ·  '),
                       style: const TextStyle(color: expenseMuted, fontSize: 11),
                     ),
                   ],
